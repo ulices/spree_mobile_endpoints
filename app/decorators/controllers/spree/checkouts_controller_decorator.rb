@@ -1,4 +1,5 @@
 Spree::Api::CheckoutsController.class_eval do
+  Spree::PermittedAttributes.checkout_attributes << [:type, :time]
 
   def create
     compouse_order
@@ -17,7 +18,10 @@ Spree::Api::CheckoutsController.class_eval do
   def add_order_line_items
     params[:order][:line_items].each do |item|
       variant = Spree::Variant.find(item[:variant_id])
-      @order.contents.add(variant, item[:quantity] || 1)
+      line_item = @order.contents.add(variant, item[:quantity] || 1)
+      line_item.delivery_type = item[:delivery_type]
+      line_item.delivery_time = item[:delivery_time]
+      line_item.save!
     end
   end
 
@@ -34,6 +38,8 @@ Spree::Api::CheckoutsController.class_eval do
     return true if @order.completed?
 
     return false unless @order.update_from_params(params, permitted_checkout_attributes, request.headers.env)
+
+    return false unless params[:order][:line_items]
 
     if current_api_user.has_spree_role?('admin') && user_id.present?
       @order.associate_user!(Spree.user_class.find(params[:user_id]))

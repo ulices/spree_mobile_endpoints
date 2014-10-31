@@ -10,7 +10,7 @@ Spree::Api::CheckoutsController.class_eval do
       invalid_resource!(@order)
     end
 
-    respond_with(@order, default_template: 'spree/api/orders/show') if @order.completed?
+    respond_with(@order, default_template: 'spree/api/orders/show') if @order.confirm?
   end
 
   private
@@ -32,7 +32,7 @@ Spree::Api::CheckoutsController.class_eval do
   end
 
   def order_next_state
-    return true if @order.completed?
+    return true if @order.confirm?
 
     return false unless @order.update_from_params(params, permitted_checkout_attributes, request.headers.env)
 

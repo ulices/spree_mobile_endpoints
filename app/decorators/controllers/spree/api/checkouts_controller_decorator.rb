@@ -32,7 +32,6 @@ Spree::Api::CheckoutsController.class_eval do
   end
 
   def order_next_state
-    puts @order.state
     return true if @order.confirm?
 
     return false unless @order.update_from_params(params, permitted_checkout_attributes, request.headers.env)

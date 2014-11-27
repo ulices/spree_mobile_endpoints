@@ -1,3 +1,5 @@
+require 'httparty'
+
 Spree::Api::CheckoutsController.class_eval do
   Spree::PermittedAttributes.checkout_attributes << [:type, :time]
 
@@ -10,6 +12,7 @@ Spree::Api::CheckoutsController.class_eval do
       invalid_resource!(@order)
     end
 
+    send_push_notification
     respond_with(@order, default_template: 'spree/api/orders/show') if @order.confirm?
   end
 
@@ -56,5 +59,29 @@ Spree::Api::CheckoutsController.class_eval do
 
   def skip_state_validation?
     true
+  end
+
+  def notification_params
+    {
+      data: {
+        alert: "Nuevo Pedido de: #{current_api_user.email}",
+        userPic: current_api_user.image_url,
+        orderToken: @order.guest_token,
+        orderNumber: @order.number,
+        userChannel: current_api_user.channel
+      },
+      channels: ["requests"]
+    }
+  end
+
+  def send_push_notification
+    HTTParty.post("https://api.parse.com/1/push",
+                  body: notification_params.to_json,
+                  headers: {
+                    "X-Parse-Application-Id" => "M9XmhjQ8B2iqs3CdNLASwl6hypCXnI8rRJLqFy0x",
+                    "X-Parse-REST-API-Key" => "coIbuuMhojZGYZVv0MuVRNwyUTD9aliN1bP9lNg8",
+                    "Content-Type" => "application/json"
+                  }
+                 )
   end
 end

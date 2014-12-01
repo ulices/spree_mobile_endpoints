@@ -64,7 +64,7 @@ Spree::Api::CheckoutsController.class_eval do
   def notification_params
     {
       data: {
-        alert: "Nuevo Pedido de: #{current_api_user.email}",
+        alert: "Nuevo Pedido de: #{current_user_full_name}",
         userPic: current_api_user.image_url,
         orderToken: @order.guest_token,
         orderNumber: @order.number,
@@ -72,6 +72,10 @@ Spree::Api::CheckoutsController.class_eval do
       },
       channels: ["requests"]
     }
+  end
+
+  def current_user_full_name
+    "#{current_api_user.ship_address.try(:firstname)} #{current_api_user.ship_address.try(:last_name)}"
   end
 
   def send_push_notification

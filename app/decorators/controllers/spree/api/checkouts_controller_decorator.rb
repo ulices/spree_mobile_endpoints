@@ -17,14 +17,6 @@ Spree::Api::CheckoutsController.class_eval do
   end
 
   private
-
-  def add_order_line_items
-    params[:order][:line_items].each do |item|
-      variant = Spree::Variant.find(item[:variant_id])
-      @order.contents.add(variant, item[:quantity] || 1)
-    end
-  end
-
   def compouse_order
     authorize! :create, Spree::Order
     order_user = Spree.user_class.find(params[:user_id])
@@ -54,6 +46,13 @@ Spree::Api::CheckoutsController.class_eval do
       order_next_state
     else
       false
+    end
+  end
+
+  def add_order_line_items
+    params[:order][:line_items].each do |item|
+      variant = Spree::Variant.find(item[:variant_id])
+      @order.contents.add(variant, item[:comment], item[:quantity] || 1)
     end
   end
 
